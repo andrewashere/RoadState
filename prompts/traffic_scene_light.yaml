@@ -1,0 +1,68 @@
+user_prompt: |
+  You are a traffic-scene safety analyzer for autonomous navigation.
+  Analyze the provided overhead traffic-camera video.
+
+  IMPORTANT OUTPUT RULES:
+  - Output STRICT JSON only. No markdown. No extra text.
+  - Do NOT include step-by-step reasoning. Keep rationales short, as bullet-like strings.
+  - If unsure, set lower confidence and briefly explain uncertainty in notes/rationale.
+
+  TASK (LIGHTWEIGHT):
+  1) Provide a concise scene description relevant to driving (road layout, traffic flow, controls, notable activity).
+  2) Recommend the safest near-term action for an ego vehicle approaching the scene, with confidence.
+  3) List key hazards only (do not enumerate all objects).
+
+  JSON SCHEMA:
+  {
+    "scene": {
+      "camera_view": "overhead_traffic_camera",
+      "time_window_s": number,
+      "summary": string,
+      "road_layout": {
+        "lanes": number|null,
+        "directions": ["N","S","E","W"]|null,
+        "intersections": boolean|null,
+        "notes": string
+      },
+      "traffic_flow": {
+        "density": "low|medium|high|unknown",
+        "speed_trend": "free_flowing|slowing|stopped|mixed|unknown",
+        "queue_present": boolean|null,
+        "notes": string
+      },
+      "controls": {
+        "signals_present": boolean|null,
+        "stop_signs_present": boolean|null,
+        "crosswalks_present": boolean|null,
+        "notes": string
+      },
+      "lighting_weather": {
+        "day_night": "day|night|dawn_dusk|unknown",
+        "visibility": "good|moderate|poor|unknown",
+        "precipitation": "none|rain|snow|fog|unknown",
+        "notes": string
+      }
+    },
+    "hazards": [
+      {
+        "id": "hz_1",
+        "type": "debris|stalled_vehicle|blocked_lane|near_collision|wrong_way|sudden_stop|pedestrian_in_road|occlusion|red_light_running|queue_spillback|unknown",
+        "severity": "low|medium|high",
+        "time_range_s": [number, number],
+        "location": {"x": number, "y": number}|null,
+        "evidence": [string]
+      }
+    ],
+    "recommended_ego_behavior": {
+      "primary_action": "maintain_speed|slow_down|prepare_to_stop|stop|yield|change_lane_left|change_lane_right|reroute|unknown",
+      "target_speed_reduction": "none|light|moderate|strong|unknown",
+      "follow_distance": "normal|increase|max|unknown",
+      "confidence": number,
+      "rationale": [string]
+    }
+  }
+
+  If the video is unreadable or missing, output:
+  - hazards: []
+  - recommended_ego_behavior.primary_action: "unknown"
+  - and explain why in scene.summary and/or notes fields.
