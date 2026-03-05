@@ -85,6 +85,27 @@ def ensure_data_ready(force_refresh: bool, ttl_seconds: int) -> tuple[str, int]:
 
 
 # ----------------------------
+# Pretty JSON helpers (NEW)
+# ----------------------------
+def try_parse_json(text: str | None):
+    """
+    Attempt to parse a JSON string into a Python object.
+    Returns parsed object on success, else None.
+    """
+    if text is None:
+        return None
+    if not isinstance(text, str):
+        return None
+    s = text.strip()
+    if not s:
+        return None
+    try:
+        return json.loads(s)
+    except Exception:
+        return None
+
+
+# ----------------------------
 # Small printing helpers
 # ----------------------------
 def print_cam_line(cam: dict, *, show_urls: bool = False, prefix: str = "- ") -> None:
@@ -137,6 +158,11 @@ def infer_videos_from_results(
     """
     Runs vLLM inference concurrently on ok outputs.
     Writes a JSON inference report.
+
+    IDE-friendly output change:
+      - inference_raw: original model output (string)
+      - inference_json: parsed JSON object if valid JSON, else null
+      - inference_parse_error: short error if parsing failed (optional)
     """
     extra_body = {}
     if fps is not None:
@@ -180,10 +206,17 @@ def infer_videos_from_results(
         if getattr(resp, "choices", None):
             content = resp.choices[0].message.content
 
+        parsed = try_parse_json(content) if isinstance(content, str) else None
+        parse_error = None
+        if isinstance(content, str) and content.strip() and parsed is None:
+            parse_error = "Model output was not valid JSON."
+
         return {
             "image_id": job["image_id"],
             "out_file": job["out_file"],
-            "inference": content,
+            "inference_raw": content,        # original text
+            "inference_json": parsed,        # dict/list if valid JSON else None
+            "inference_parse_error": parse_error,
             "error": None,
         }
 
@@ -200,7 +233,7 @@ def infer_videos_from_results(
             "results": [],
         }
         infer_out_path.parent.mkdir(parents=True, exist_ok=True)
-        infer_out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        infer_out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"[INFER REPORT] wrote: {infer_out_path}")
         return
 
@@ -218,7 +251,9 @@ def infer_videos_from_results(
                     {
                         "image_id": job["image_id"],
                         "out_file": job["out_file"],
-                        "inference": None,
+                        "inference_raw": None,
+                        "inference_json": None,
+                        "inference_parse_error": None,
                         "error": str(e),
                     }
                 )
@@ -236,7 +271,7 @@ def infer_videos_from_results(
         "results": results_out,
     }
     infer_out_path.parent.mkdir(parents=True, exist_ok=True)
-    infer_out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    infer_out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"[INFER REPORT] wrote: {infer_out_path}")
 
 
@@ -619,7 +654,6 @@ def cmd_route_record_infer(args: argparse.Namespace) -> None:
 
 # ----------------------------
 # CLI parser
-
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="511GA Cameras + Recorder + Route Inference")
     p.add_argument("--ttl", type=int, default=CACHE_TTL_SECONDS_DEFAULT, help="cache TTL seconds")

@@ -4,18 +4,20 @@
   <img src="./roadState.png" alt="RoadState banner" width="100%" />
 </p>
 
-CLI application for existing city & state cameras(currently only GA) that can:
-- fetch/cache/index camera metadata
-- run spatial queries (`search`, `bbox`, `near`)
-- map cameras to a Google route (`route-cameras`)
-- record route cameras to MP4 and run local vLLM inference (`route-record-infer`)
+RoadState is a CLI for working with public traffic cameras (currently **Georgia / 511GA**). It can:
+
+- Fetch, cache, and index camera metadata
+- Run spatial queries: `search`, `bbox`, `near`
+- Map cameras along a Google Routes path: `route-cameras`
+- Record route cameras to MP4 and run local vLLM inference on Cosmos2: `route-record-infer`
+
 
 ## Pipeline
 
 ### 1) Data prep pipeline (used by all camera commands)
 
 ```mermaid
-flowchart TD
+flowchart LR
     A[Run command] --> B{Cache fresh?}
     B -->|Yes| C[Load cache/ga_cameras_raw.json]
     B -->|No| D[Fetch 511GA cameras API]
@@ -65,6 +67,7 @@ Recording details:
 ## Recommended Hardware
 
 - GPU: **NVIDIA H100 (required)** for local `route-record-infer` workloads with the current video model setup w/ concurrency.
+- Base image: `pytorch:1.0.2-cu1281-torch280-ubuntu2404`
 - CPU: 16+ vCPU recommended.
 - RAM: 64+ GB recommended.
 - Storage: fast NVMe SSD recommended for concurrent recording + inference I/O.
@@ -82,6 +85,10 @@ Set these env vars in your pod/template config before startup:
 - `GOOGLE_ROUTES_API_KEY` (fills `google_routes_api_key.txt`)
 - `HF_TOKEN=hf_xxx...` (non-interactive HF login)
 - `START_VLLM=1` (auto-start vLLM on boot)
+
+Google Routes API note:
+- The pod/server IP address must be allowlisted in your Google API credentials/restrictions.
+- You can create an API key at: `https://developers.google.com/maps`
 
 ## Commands
 

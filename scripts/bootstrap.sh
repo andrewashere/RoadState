@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOG_DIR="/root/logs"
+LOG_DIR="/root/RoadState/logs"
 mkdir -p "$LOG_DIR"
 
 # Log everything to file + console
@@ -59,7 +59,7 @@ uv pip install openai pyyaml hf_transfer
 # Secrets (startup-safe)
 # -----------------------------
 echo "[boot] Creating secret files (if missing)"
-SECRETS_DIR="/root/secrets"
+SECRETS_DIR="/root/RoadState/secrets"
 mkdir -p "$SECRETS_DIR"
 chmod 700 "$SECRETS_DIR"
 
