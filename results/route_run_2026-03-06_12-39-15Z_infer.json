@@ -1,0 +1,31 @@
+{
+  "vllm_server": "http://127.0.0.1:8000/v1",
+  "model": "nvidia/Cosmos-Reason2-8B",
+  "max_tokens": 700,
+  "fps": null,
+  "infer_workers": 8,
+  "results": [
+    
+    {
+      "image_id": 20330,
+      "out_file": "recordings_route/img_20330_2026-03-06_12-39-22Z_8s.mp4",
+      "inference_raw": "```json\n{\n  \"scene\": {\n    \"camera_view\": \"overhead_traffic_camera\",\n    \"time_window_s\": 7.7,\n    \"road_layout\": {\n      \"lanes\": 3,\n      \"directions\": null,\n      \"intersections\": false,\n      \"notes\": \"The road has three lanes in one direction with moderate traffic flow. Vehicles are distributed across the lanes, with no lane closures or construction zones visible.\"\n    },\n    \"lighting_weather\": {\n      \"day_night\": \"day\",\n      \"visibility\": \"clear\",\n      \"notes\": \"The scene is well-lit with clear visibility, no adverse weather conditions, and no obstructions affecting the view.\"\n    }\n  },\n  \"objects\": [\n    {\n      \"id\": \"obj_1\",\n      \"type\": \"vehicle\",\n      \"subtype\": \"car\",\n      \"navigation_critical\": true,\n      \"confidence\": 0.95,\n      \"states\": [\n        {\n          \"t_s\": 0.2,\n          \"position\": {\n            \"x\": 0.26,\n            \"y\": 0.45\n          },\n          \"bbox\": [\n            0.23,\n            0.43,\n            0.31,\n            0.51\n          ],\n          \"motion\": {\n            \"speed\": \"medium\",\n            \"direction\": \"E\"\n          }\n        }\n      ],\n      \"evidence\": [\n        \"A white car is visible in the leftmost lane, moving steadily forward.\"\n      ]\n    },\n    {\n      \"id\": \"obj_2\",\n      \"type\": \"vehicle\",\n      \"subtype\": \"car\",\n      \"navigation_critical\": true,\n      \"confidence\": 0.9,\n      \"states\": [\n        {\n          \"t_s\": 1.0,\n          \"position\": {\n            \"x\": 0.32,\n            \"y\": 0.38\n          },\n          \"bbox\": [\n            0.3,\n            0.36,\n            0.37,\n            0.43\n          ],\n          \"motion\": {\n            \"speed\": \"medium\",\n            \"direction\": \"E\"\n          }\n        }\n      ],\n      \"evidence\": [\n        \"A red car is seen in the middle lane, maintaining a consistent speed and direction.\"\n      ]\n    },\n    {\n      \"id\": \"obj_3\",\n      \"type\": \"vehicle\",\n      \"subtype\": \"car\",\n      \"navigation_critical\": true,\n      \"confidence\": 0.85,\n      \"states\": [\n        {\n          \"t_s\": 2.7,\n          \"position\": {\n            \"x\": 0.45,\n            \"y\": 0.28\n          },\n          \"bbox\": [\n            0.43,\n            0.26,\n            0.5,\n            0.34\n          ],\n          \"motion\": {\n            \"speed\": \"fast\",\n            \"direction\": \"E\"\n          }\n        }\n      ],\n      \"evidence\": [\n        \"A black car is traveling in the rightmost lane at a higher speed compared to other vehicles.\"\n      ]\n    },\n    {\n      \"id\": \"obj_4\",\n      \"type\": \"vehicle\",\n      \"subtype\": \"",
+      "inference_json": null,
+      "error": null
+    },
+    {
+      "image_id": 21464,
+      "out_file": "recordings_route/img_21464_2026-03-06_12-39-15Z_8s.mp4",
+      "inference_raw": "```json\n{\n  \"scene\": {\n    \"camera_view\": \"overhead_traffic_camera\",\n    \"time_window_s\": 7.7,\n    \"road_layout\": {\n      \"lanes\": 5,\n      \"directions\": [\n        \"N\",\n        \"S\"\n      ],\n      \"intersections\": true,\n      \"notes\": \"The road has multiple lanes in one direction, with vehicles moving smoothly. There are no visible traffic lights or signs indicating any restrictions.\"\n    },\n    \"lighting_weather\": {\n      \"day_night\": \"day\",\n      \"visibility\": \"clear\",\n      \"notes\": \"The scene is well-lit with clear visibility, no fog or rain, and no obstructions affecting the view.\"\n    }\n  },\n  \"objects\": [],\n  \"hazards\": [],\n  \"recommended_ego_behavior\": {\n    \"primary_action\": \"maintain_speed\",\n    \"target_speed_reduction\": \"none\",\n    \"follow_distance\": \"normal\",\n    \"confidence\": 0.95,\n    \"rationale\": []\n  }\n}\n```",
+      "inference_json": null,
+      "error": null
+    },
+    {
+      "image_id": 21467,
+      "out_file": "recordings_route/img_21467_2026-03-06_12-39-18Z_8s.mp4",
+      "inference_raw": "```json\n{\n  \"scene\": {\n    \"camera_view\": \"overhead_traffic_camera\",\n    \"time_window_s\": 7.7,\n    \"road_layout\": {\n      \"lanes\": 7,\n      \"directions\": null,\n      \"intersections\": false,\n      \"notes\": \"The highway has multiple lanes with moderate traffic flow. A yellow sign indicates a curve or bend ahead.\"\n    },\n    \"lighting_weather\": {\n      \"day_night\": \"day\",\n      \"visibility\": \"clear\",\n      \"notes\": \"The scene is well-lit with clear visibility, and no adverse weather conditions are observed.\"\n    }\n  },\n  \"objects\": [],\n  \"hazards\": [],\n  \"recommended_ego_behavior\": {\n    \"primary_action\": \"maintain_speed\",\n    \"target_speed_reduction\": \"none\",\n    \"follow_distance\": \"normal\",\n    \"confidence\": 0.9,\n    \"rationale\": []\n  }\n}\n```",
+      "inference_json": null,
+      "error": null
+    }
+  ]
+}

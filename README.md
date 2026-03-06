@@ -42,14 +42,6 @@ How it works:
 4. Only successful recordings are sent to the OpenAI-compatible vLLM endpoint.
 5. Prompt text comes from `--prompt` or `--prompt-yaml`.
 
-## Requirements
-
-- Python 3.11+
-- `ffmpeg` on PATH
-- Python packages:
-  - `requests`
-  - `PyYAML`
-  - `openai`
 
 ## Recommended Hardware
 
@@ -61,14 +53,20 @@ How it works:
 
 ## Setup
 
+Change into project directory
+
+```bash
+cd RoadState
+```
+
 Use the bootstrap script:
 
 ```bash
-bash scripts/bootstrap.sh
+bash bootstrap.sh
 ```
 
 Set these env vars before startup:
-- `GA511_API_KEY` (fills `511ga_api_key.txt`; not needed for tests if cached camera DB already exists) - https://511ga.org/developers/doc
+- `GA511_API_KEY` (fills `511ga_api_key.txt`; not needed for tests. cached camera DB already exists) - https://511ga.org/developers/doc
 - `GOOGLE_ROUTES_API_KEY` (fills `google_routes_api_key.txt`)
 - `HF_TOKEN=hf_xxx...` (non-interactive HF login)
 - `START_VLLM=1` (auto-start vLLM on boot)
@@ -78,6 +76,11 @@ Google Routes API note:
 - You can create an API key at: `https://developers.google.com/maps`
 
 ## Command
+
+Activate python virtual enviorment in the terminal
+```bash
+source .venv/bin/activate
+```
 
 ```bash
 python3 app.py route-record-infer \
@@ -89,6 +92,14 @@ python3 app.py route-record-infer \
   --model nvidia/Cosmos-Reason2-8B \
   --preview
 ```
+
+What this command does:
+- Runs the full route pipeline from downtown Atlanta (`33.7489,-84.3881`) to Buckhead (`33.8537,-84.3733`).
+- Samples route points every `250` meters (`--step-m 250`), picks the nearest enabled camera for each point, and deduplicates by `view_id`.
+- Records `8`-second clips from selected cameras (`--seconds 8`).
+- Uses prompt text from `prompts/traffic_scene_safety.yaml` (`--prompt-yaml`).
+- Sends each successful recording to the local Cosmos vLLM server at `http://127.0.0.1:8000/v1` using model `nvidia/Cosmos-Reason2-8B`.
+- Prints a preview list of selected camera `view_id`s before recording (`--preview`).
 
 ## Outputs
 
