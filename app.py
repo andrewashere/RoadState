@@ -158,11 +158,6 @@ def infer_videos_from_results(
     """
     Runs vLLM inference concurrently on ok outputs.
     Writes a JSON inference report.
-
-    IDE-friendly output change:
-      - inference_raw: original model output (string)
-      - inference_json: parsed JSON object if valid JSON, else null
-      - inference_parse_error: short error if parsing failed (optional)
     """
     extra_body = {}
     if fps is not None:
@@ -183,7 +178,7 @@ def infer_videos_from_results(
         )
 
     def worker(job: dict) -> dict:
-        # One client per worker to avoid any thread-safety issues.
+        # One client per worker 
         client = OpenAI(api_key="EMPTY", base_url=vllm_server)
         video = file_url(job["out_file"])
 

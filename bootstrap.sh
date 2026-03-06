@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+umask 077  # new files default to 600/700-style perms
+
 LOG_DIR="/root/RoadState/logs"
 mkdir -p "$LOG_DIR"
 
-# Log everything to file + console
-exec > >(tee -a "$LOG_DIR/bootstrap.out") 2> >(tee -a "$LOG_DIR/bootstrap.err" >&2)
+STAMP="$(date -u +'%Y%m%dT%H%M%SZ')"
+BOOT_OUT="$LOG_DIR/bootstrap.${STAMP}.out"
+BOOT_ERR="$LOG_DIR/bootstrap.${STAMP}.err"
+
+# Log everything to file + console (unique per run, no overwrites)
+exec > >(tee -a "$BOOT_OUT") 2> >(tee -a "$BOOT_ERR" >&2)
 
 echo "[boot] Starting bootstrap in: $(pwd)"
+echo "[boot] UTC stamp: ${STAMP}"
 echo "[boot] User: $(id -u):$(id -g)  HOME=${HOME:-<unset>}"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -36,14 +43,21 @@ if [[ -f "${HOME:-/root}/.local/bin/env" ]]; then
   source "${HOME:-/root}/.local/bin/env"
 fi
 
-echo "[boot] uv version: $(command -v uv || true)"
+echo "[boot] uv path: $(command -v uv || true)"
 uv --version
 
-echo "[boot] Installing huggingface_hub CLI via uv tool"
+echo "[boot] Installing huggingface_hub CLI via uv tool (idempotent)"
 uv tool install -U huggingface_hub
 
-echo "[boot] Creating venv (Python 3.12) with seed"
-uv venv --python 3.12 --seed
+# -----------------------------
+# Venv 
+# -----------------------------
+if [[ -d ".venv" ]]; then
+  echo "[boot] venv exists: .venv (skipping create)"
+else
+  echo "[boot] Creating venv (Python 3.12) with seed"
+  uv venv --python 3.12 --seed
+fi
 
 echo "[boot] Activating venv"
 # shellcheck disable=SC1091
@@ -56,25 +70,33 @@ echo "[boot] Installing Python deps: openai pyyaml hf_transfer"
 uv pip install openai pyyaml hf_transfer
 
 # -----------------------------
-# Secrets (startup-safe)
+# Secrets 
 # -----------------------------
-echo "[boot] Creating secret files (if missing)"
+echo "[boot] Ensuring secret files exist (non-destructive)"
 SECRETS_DIR="/root/RoadState/secrets"
 mkdir -p "$SECRETS_DIR"
 chmod 700 "$SECRETS_DIR"
 
-touch "$SECRETS_DIR/511ga_api_key.txt" "$SECRETS_DIR/google_routes_api_key.txt"
-chmod 600 "$SECRETS_DIR/511ga_api_key.txt" "$SECRETS_DIR/google_routes_api_key.txt"
+# Create only if missing; 
+for f in 511ga_api_key.txt google_routes_api_key.txt; do
+  if [[ -e "$SECRETS_DIR/$f" ]]; then
+    echo "[boot] Secret exists: $SECRETS_DIR/$f (leaving as-is)"
+  else
+    : > "$SECRETS_DIR/$f"
+    chmod 600 "$SECRETS_DIR/$f"
+    echo "[boot] Secret created: $SECRETS_DIR/$f"
+  fi
+done
 
-# Optional: populate from env vars (recommended)
-# - GA511_API_KEY for secrets/511ga_api_key.txt
-# - GOOGLE_ROUTES_API_KEY for secrets/google_routes_api_key.txt
+# populate from env vars ONLY if file is empty
 if [[ -n "${GA511_API_KEY:-}" && ! -s "$SECRETS_DIR/511ga_api_key.txt" ]]; then
   printf '%s' "$GA511_API_KEY" > "$SECRETS_DIR/511ga_api_key.txt"
+  echo "[boot] Wrote GA511_API_KEY into 511ga_api_key.txt (was empty)"
 fi
 
 if [[ -n "${GOOGLE_ROUTES_API_KEY:-}" && ! -s "$SECRETS_DIR/google_routes_api_key.txt" ]]; then
   printf '%s' "$GOOGLE_ROUTES_API_KEY" > "$SECRETS_DIR/google_routes_api_key.txt"
+  echo "[boot] Wrote GOOGLE_ROUTES_API_KEY into google_routes_api_key.txt (was empty)"
 fi
 
 echo "[boot] Secrets ready:"
@@ -95,20 +117,23 @@ if [[ "${START_VLLM:-0}" == "1" ]]; then
   echo "[boot] Starting vLLM..."
   mkdir -p "$LOG_DIR"
 
-  # Background start + log capture
+  VLLM_OUT="$LOG_DIR/vllm.${STAMP}.out"
+  VLLM_ERR="$LOG_DIR/vllm.${STAMP}.err"
+
+  # Background start + log capture (unique per run)
   nohup uv run vllm serve nvidia/Cosmos-Reason2-8B \
     --port 8000 \
     --allowed-local-media-path "/root" \
     --max-model-len 8192 \
     --media-io-kwargs '{"video": {"num_frames": 20}}' \
     --reasoning-parser qwen3 \
-    > "$LOG_DIR/vllm.out" 2> "$LOG_DIR/vllm.err" &
+    > "$VLLM_OUT" 2> "$VLLM_ERR" &
 
   echo "[boot] vLLM PID: $!"
-  echo "[boot] vLLM logs: $LOG_DIR/vllm.out  /  $LOG_DIR/vllm.err"
+  echo "[boot] vLLM logs: $VLLM_OUT  /  $VLLM_ERR"
 else
   echo "[boot] START_VLLM not set to 1; skipping vLLM start."
 fi
 
 echo "[boot] Done."
-echo "[boot] Logs: $LOG_DIR/bootstrap.out (stdout), $LOG_DIR/bootstrap.err (stderr)"
+echo "[boot] Logs: $BOOT_OUT (stdout), $BOOT_ERR (stderr)"
